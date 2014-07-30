@@ -17,9 +17,11 @@ end
 
 get '/:uuid' do |uuid|
   branches = get_repository_branches(uuid)
-  @branches.each_with_object({}) do |branch, statuses|
-    statuses[branch] = Codeship::Status.new uuid, branch
+  @statuses = branches.each_with_object({}) do |branch, statuses|
+    statuses[branch] = Codeship::Status.new(uuid, branch: branch)
   end
+
+  haml :project_status
 end
 
 # Add watched branches
@@ -29,7 +31,7 @@ end
 
 private
 def get_repository_branches(uuid)
-  $redis.smembers(project_key(uuid)).inspect
+  $redis.smembers(project_key(uuid))
 end
 
 def set_repository_branches(uuid, branches = [])
@@ -43,11 +45,20 @@ end
 __END__
 
 @@ layout
+!!!
 %html
-  = yield
+  %head
+    <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0/pure-min.css">
+  %body
+    = yield
 
 @@ index
 %div.title Hello world.
 
 @@ project_status
 .branches
+  - @statuses.each_pair do |branch, status|
+    %dt= branch
+    %dd
+      = status.status
+      %img{src: "http://www.codeship.io/projects/#{params[:uuid]}/status?branch=#{branch}"}
