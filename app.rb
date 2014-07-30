@@ -12,11 +12,14 @@ configure :development, :test do
 end
 
 get '/' do
-  'Usage:'
+  haml :index
 end
 
 get '/:uuid' do |uuid|
-  get_repository_branches(uuid)
+  branches = get_repository_branches(uuid)
+  @branches.each_with_object({}) do |branch, statuses|
+    statuses[branch] = Codeship::Status.new uuid, branch
+  end
 end
 
 # Add watched branches
@@ -36,3 +39,15 @@ end
 def project_key(uuid)
   [uuid, 'branches'].join(':')
 end
+
+__END__
+
+@@ layout
+%html
+  = yield
+
+@@ index
+%div.title Hello world.
+
+@@ project_status
+.branches

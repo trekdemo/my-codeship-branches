@@ -4,6 +4,7 @@ gem 'sinatra'
 gem 'codeship'
 gem 'redis'
 gem 'hiredis'
+gem 'haml'
 
 gem 'thin'
 
